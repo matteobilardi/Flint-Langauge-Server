@@ -1,16 +1,15 @@
 {
-	"name": "Flint vscode client",
+	"name": "flint_vscode_client",
 	"description": "VSCode client for language server",
 	"author": "Zubair Chowdhury",
 	"license": "MIT",
 	"version": "0.0.1",
-	"publisher": "vscode",
 	"engines": {
 		"vscode": "^1.23.0"
 	},
 	"scripts": {
 		"update-vscode": "vscode-install",
-		"postinstall": "vscode-install"
+		"postinstall" : "vscode-install"
 	},
 	"dependencies": {
 		"vscode-languageclient": "^4.1.4"
