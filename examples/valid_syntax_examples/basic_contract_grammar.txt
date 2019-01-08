@@ -1,0 +1,38 @@
+What elements of the grammar am I exercising:
+
+contractDeclaration = %s"contract" SP identifier SP [identifierGroup] SP "{" *(WSP variableDeclaration CRLF) "}";
+
+; VARIABLES
+variableDeclaration = [*(modifier SP)] WSP (%s"var" / %s"let") SP identifier typeAnnotation [WSP "=" WSP expression];
+
+; TYPES
+typeAnnotation = ":" WSP type;
+type =  basicType
+
+basicType = %s"Bool"
+          / %s"Int"
+          / %s"String"
+          / %s"Address";
+
+modifier  = %s"public"
+          / %s"mutating"
+          / %s"visible";
+
+; EXPRESSIONS
+expression = literal
+
+; LITERALS 
+identifier = ( ALPHA / "_" ) *( ALPHA / DIGIT / "$" / "_" );
+identifierGroup       = "(" identifierList ")";
+identifierList        = identifier *("," WSP identifier)
+
+literal    = numericLiteral
+           / stringLiteral
+           / booleanLiteral
+           / addressLiteral;
+
+number         = 1*DIGIT;
+decimalLiteral = number
+addressLiteral = %s"0x" 40HEXDIG;
+booleanLiteral = %s"true" / %s"false";
+stringLiteral  = """ identifier """;

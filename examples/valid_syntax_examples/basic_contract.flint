@@ -1,0 +1,9 @@
+
+contract _abc (id10) {
+  visible let id1: Int  = 12321
+	public  var id2: Bool = true
+  mutating var id3: String = "sdfsd"
+  let id4: Address = "0xABAEBBBAABBF987898788987897213AAFFFADA45"
+  var id5: Int
+}
+
