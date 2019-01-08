@@ -1,6 +1,6 @@
 {
-	"name": "Flint language server",
-	"description": "Implementation of a language server in node for Flint",
+	"name": "flint_language_server",
+	"description": "Implementation of a language server in typescript for Flint",
 	"version": "1.0.0",
 	"author": "Zubair Chowdhury",
 	"license": "MIT",

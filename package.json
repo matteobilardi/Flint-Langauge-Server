@@ -1,13 +1,10 @@
 {
-	"name": "Flint LSP",
+	"name": "flint_language_server",
 	"description": "A language server for flint",
 	"author": "Zubair Chowdhury",
 	"license": "MIT",
 	"version": "1.0.0",
 	"categories": [],
-	"keywords": [
-		"multi-root ready"
-	],
 	"engines": {
 		"vscode": "^1.23.0"
 	},
@@ -16,15 +13,23 @@
 	],
 	"main": "./client/out/extension",
 	"contributes": {
-		"languages":[{
-			"id": "flint",
-			"extenstions" : [".flint"],
-			"aliases" : ["Flint"]
-		}]
+		"languages": [
+			{
+				"id": "flint",
+				"aliases": [
+					"Flint",
+					"flint"
+				],
+				"extensions": [
+					".flint"
+				]
+			}
+		]
 	},
 	"scripts": {
 		"compile": "tsc -b",
-		"watch": "tsc -b -w"
+		"watch": "tsc -b -w",
+		"postinstall": "cd client && npm install && cd ../server && npm install && cd .."
 	},
 	"devDependencies": {
 		"@types/mocha": "^5.2.0",

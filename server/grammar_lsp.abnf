@@ -1,0 +1,96 @@
+; FLINT GRAMMAR (RFC 7405)
+
+; TOP LEVEL
+topLevelModule = 1*(topLevelDeclaration CRLF);
+
+topLevelDeclaration = contractDeclaration
+
+; CONTRACTS
+; [identifierGroup] is a list of type states 
+contractDeclaration = %s"contract" SP identifier SP [identifierGroup] SP "{" *(WSP variableDeclaration CRLF) "}";
+
+; VARIABLES
+variableDeclaration = [*(modifier SP)] WSP (%s"var" / %s"let") SP identifier typeAnnotation [WSP "=" WSP expression];
+
+; TYPES
+typeAnnotation = ":" WSP type;
+
+; what is the first type?
+type = identifier ["<" type *("," WSP type) ">"]
+     / basicType
+     / arrayType
+     / fixedArrayType
+     / dictType;
+
+basicType = %s"Bool"
+          / %s"Int"
+          / %s"String"
+          / %s"Address";
+
+arrayType      = "[" type "]";
+fixedArrayType = type "[" numericLiteral "]";
+dictType       = "[" type ":" WSP type "]";
+
+
+; EVENTS ; events are not in da declaration??
+eventDeclaration = %s"event" identifer "{" *(variableDeclaration) "}"
+
+; ACCESS GROUPS
+identifierGroup       = "(" identifierList ")";
+identifierList        = identifier *("," WSP identifier)
+
+modifier  = %s"public"
+          / %s"mutating"
+          / %s"visible";
+
+; EXPRESSIONS
+expression = identifier
+           / inOutExpression
+           / binaryExpression
+           / literal
+           / arrayLiteral
+           / dictionaryLiteral
+           / self
+           / variableDeclaration
+           / bracketedExpression
+           / subscriptExpression
+
+inOutExpression = "&" expression;
+
+binaryOp = "+" / "-" / "*" / "/" / "**"
+         / "&+" / "&-" / "&*"
+         / "="
+         / "==" / "!="
+         / "+=" / "-=" / "*=" / "/="
+         / "||" / "&&"
+         / ">" / "<" / "<=" / ">="
+         / ".";
+
+binaryExpression = expression WSP binaryOp WSP expression;
+
+self = %s"self"
+
+bracketedExpression = "(" expression ")";
+
+subscriptExpression = subscriptExpression "[" expression "]";
+                    / identifier "[" expression "]";
+
+; LITERALS
+identifier = ( ALPHA / "_" ) *( ALPHA / DIGIT / "$" / "_" );
+literal    = numericLiteral
+           / stringLiteral
+           / booleanLiteral
+           / addressLiteral;
+
+number         = 1*DIGIT;
+numericLiteral = decimalLiteral;
+decimalLiteral = number
+               / number "." number;
+
+addressLiteral = %s"0x" 40HEXDIG;
+
+arrayLiteral      = "[]";
+dictionaryLiteral = "[:]";
+
+booleanLiteral = %s"true" / %s"false";
+stringLiteral  = """ identifier """;

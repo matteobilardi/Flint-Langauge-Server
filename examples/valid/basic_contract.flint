@@ -1,0 +1,14 @@
+contract _abc {
+  visible let id1: Int  = 12321
+	public  var id2: Bool = true
+  var id3: String = "sdfsd"
+}
+
+_abc :: (any) {
+  public init() {} 
+
+  mutating func test() {
+    let test : Bool = true
+    self.id2 = test
+  }
+}
