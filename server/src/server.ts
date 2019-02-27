@@ -69,7 +69,8 @@ function convertFlintToDiag(LSPDiag: Object) : Diagnostic
 			end: {"line": LSPDiag["Range"]["End"]["Line"], "character": LSPDiag["Range"]["End"]["Character"]}
 		},
 		message: LSPDiag["Message"],
-		source: LSPDiag["Source"]
+		source: LSPDiag["Source"],
+		code: "Language Error"
 	};
 
 	return diagnosic;
