@@ -44,15 +44,17 @@ connection.onInitialize((params: InitializeParams) => {
 
 	return {
 		capabilities: {
-			// syncKind is all about how u shud sync with the language server
+			// syncKind is all about how u shud ync with the language server
 			// whenever a change happens
 			textDocumentSync: documents.syncKind,
 			// Tell the client that the server supports code completion
+			/*
 			completionProvider: {
 				resolveProvider: false,
 				triggerCharacters: ["."]
 			},
-			hoverProvider : true
+			hoverProvider : false
+			*/
 		}
 	};
 });
