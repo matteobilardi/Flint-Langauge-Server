@@ -5,6 +5,9 @@
 
 import * as path from 'path';
 import { workspace, ExtensionContext } from 'vscode';
+import * as vscode from 'vscode';
+import { execFileSync } from 'child_process';
+const fs = require('fs');
 
 import {
 	LanguageClient,
@@ -14,9 +17,65 @@ import {
 } from 'vscode-languageclient';
 
 let client: LanguageClient;
+const flint_dev_path = "/Users/Zubair/Documents/Imperial/Thesis/Code/flint/.build/debug/dev_version";
+
+function getWebviewContent(tsDiagramPath: vscode.Uri) {
+	return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeState Diagram,</title>
+</head>
+<body>
+    <h1> Contract Analysis: Type State Diagram </h1>
+    <img src="${tsDiagramPath}" width="300" />
+</body>
+</html>`;
+}
+
+function gen_typestate_diagram(sourceCode: string, fileName: string) : string
+{
+	return execFileSync(flint_dev_path, ["-t", sourceCode, fileName]).toString();
+}
+
+function getRandom(max: number, min: number) : number {
+	return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+function create_type_state_graph(sourceCode: string, extension_path: string): string
+{
+			let graphCode = gen_typestate_diagram(sourceCode, "not_used");	
+			let fileName = getRandom(0, 1000).toString();
+			let dotFilePath = path.join(extension_path, 'diagrams', "d" + fileName + ".dot");
+			let pngFilePath = path.join(extension_path, 'diagrams', "p" + fileName + ".png");
+			fs.writeFileSync(dotFilePath, graphCode);
+			let s = execFileSync("dot", ["-Tpng", dotFilePath, "-o", pngFilePath]).toString();
+			return pngFilePath;
+}
 
 export function activate(context: ExtensionContext) {
-	// The server is implemented in node
+	// clean up previous diagrams and then restart
+	let dir = path.join(context.extensionPath, 'diagrams');
+	cleanDiagramDir(dir);
+	createDiagramDir(dir);
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('drawTypeState.draw', () => {
+			const panel = vscode.window.createWebviewPanel(
+				'typeState',
+				'Typestate Diagram',
+				vscode.ViewColumn.Active
+			);
+
+			const srcCode = vscode.window.activeTextEditor.document.getText();
+			const file_name = create_type_state_graph(srcCode, context.extensionPath);
+			const diskPath = vscode.Uri.file(file_name);
+			const diagramSrc = diskPath.with({ scheme: 'vscode-resource' });
+			panel.webview.html = getWebviewContent(diagramSrc);
+		})
+	);
+
 	let serverModule = context.asAbsolutePath(
 		path.join('server', 'out', 'server.js')
 	);
@@ -57,6 +116,21 @@ export function activate(context: ExtensionContext) {
 
 	// Start the client. This will also launch the server
 	client.start();
+}
+
+function createDiagramDir(diagramsDir: string) {
+	if (!fs.existsSync(diagramsDir)) {
+		fs.mkdirSync(diagramsDir);
+	}
+}
+
+function cleanDiagramDir(diagramPath: string) {
+	if (fs.existsSync(diagramPath)) {
+		fs.readdirSync(diagramPath).forEach((file) => {
+			fs.unlinkSync(path.join(diagramPath, file));	
+		});
+		fs.rmdirSync(diagramPath);
+	}
 }
 
 export function deactivate(): Thenable<void> | undefined {
