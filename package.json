@@ -13,6 +13,13 @@
 	],
 	"main": "./client/out/extension",
 	"contributes": {
+		"commands": [
+			{
+				"command": "drawTypeState.draw",
+				"title": "Draw type state diagram for contract",
+				"category": "Contract Analysis"
+			}
+		],
 		"languages": [
 			{
 				"id": "flint",
