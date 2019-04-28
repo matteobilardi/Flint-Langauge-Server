@@ -44,7 +44,7 @@ function getWebviewContentOnError() {
     <title>TypeState Diagram,</title>
 </head>
 <body>
-	<h1> Contract does not compile thus analysis is not possible. Please fix the issues with the contract and try again </h1>
+	<h1> Contract does not compile thus analysis is not possible. Please fix the issues with the contract and try again </h1>	
 </body>
 </html>`;
 }
