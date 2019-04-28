@@ -109,7 +109,7 @@ function analyse_callers_and_states_of_funcs(sourceCode: string, fileName: strin
 		stateTable = tableHeaderState + stateTableEntries + "</table> </br>"; 
 	}
 
-	let anyPercent = "<h3> % of methods under any caller blocks: " + caller_state_info["anyPercent"] + "</h3>";
+	let anyPercent = "<h3> % of methods under any caller blocks: " + caller_state_info["anyPercent"] + "%</h3>";
 
 	return callerTable + stateTable + anyPercent;
 }
