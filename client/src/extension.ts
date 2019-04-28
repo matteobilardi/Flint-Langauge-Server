@@ -20,7 +20,7 @@ let client: LanguageClient;
 const flint_dev_path = "/Users/Zubair/Documents/Imperial/Thesis/Code/flint/.build/debug/flint-lsp";
 const flint_contract_analysis = "/Users/Zubair/Documents/Imperial/Thesis/Code/flint/.build/debug/flint-ca";
 
-function getWebviewContent(tsDiagramPath: vscode.Uri) {
+function getWebviewContent(tsDiagramPath: vscode.Uri, caller_analysis: string) {
 	return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -30,7 +30,8 @@ function getWebviewContent(tsDiagramPath: vscode.Uri) {
 </head>
 <body>
     <h1> Contract Analysis: Type State Diagram </h1>
-    <img src="${tsDiagramPath}" width="300" />
+	<img src="${tsDiagramPath}" width="300" />
+	${caller_analysis}
 </body>
 </html>`;
 }
@@ -52,6 +53,65 @@ function getWebviewContentOnError() {
 function gen_typestate_diagram(sourceCode: string, fileName: string) : string
 {
 	return execFileSync(flint_contract_analysis, ["-t", sourceCode, fileName]).toString();
+}
+
+function analyse_callers_and_states_of_funcs(sourceCode: string, fileName: string) : string
+{
+	let res  = execFileSync(flint_contract_analysis, ["-c", sourceCode, fileName]).toString();
+
+	if (res.includes("ERROR")) {
+		return "ERROR";
+	}
+
+	let caller_state_info = JSON.parse(res);
+
+	let tableHeaderCaller = " <h1> Caller & State Analysis </h1> \
+	  <table style=\"width:100%\" border=\"1\">\
+	  <tr>\
+		<th align=\"left\"> Caller </th>\
+		<th align=\"left\"> Functions </th>\
+	  </tr>\
+	";
+
+	let tableHeaderState = "\
+	<table style=\"width:100%\" border=\"1\">\
+	<tr>\
+	  <th align=\"left\"> State </th>\
+	  <th align=\"left\"> Functions </th>\
+	</tr>\
+	";
+
+	let caller_analysis  = JSON.parse(caller_state_info["caller"]);
+
+	let tableEntries = "";
+	let callerTable = "";
+	if (Object.keys(caller_analysis).length > 0) {
+		for (let caller in caller_analysis) {
+			let funcs = caller_analysis[caller].toString();
+			let tableEntry = `<tr> <td> ${caller} </td> <td> ${funcs} </td>`;
+			tableEntries += tableEntry;
+		}
+
+		callerTable = tableHeaderCaller	+ tableEntries + "</table> </br>";
+	}
+	
+	let state_analysis = JSON.parse(caller_state_info["states"]);
+
+	let stateTableEntries = "";
+	let stateTable = "";
+	if (Object.keys(state_analysis).length > 0) {
+		for (let state in state_analysis) {
+			let funcs = caller_analysis[state].toString();
+			let tableEntry = `<tr> <td> ${state} </td> <td> ${funcs} </td>`;
+			stateTableEntries += tableEntry;
+		}
+
+		stateTable = tableHeaderState + stateTableEntries + "</table> </br>"; 
+	}
+
+	let anyPercent = "<h3> % of methods under any caller blocks: " + caller_state_info["anyPercent"] + "</h3>";
+
+	return callerTable + stateTable + anyPercent;
 }
 
 function getRandom(max: number, min: number) : number {
@@ -87,14 +147,15 @@ export function activate(context: ExtensionContext) {
 			);
 
 			const srcCode = vscode.window.activeTextEditor.document.getText();
+			const call_analysis_html = analyse_callers_and_states_of_funcs(srcCode, "not_used");
 			const file_name = create_type_state_graph(srcCode, context.extensionPath);
 			let html = "";
-			if (file_name == "ERROR") {
+			if (file_name === "ERROR" || call_analysis_html === "ERROR") {
 				html = getWebviewContentOnError();
 			} else {
 				const diskPath = vscode.Uri.file(file_name);
 				const diagramSrc = diskPath.with({ scheme: 'vscode-resource' });
-				html = getWebviewContent(diagramSrc);
+				html = getWebviewContent(diagramSrc, call_analysis_html);
 			}
 
 			panel.webview.html = html;
