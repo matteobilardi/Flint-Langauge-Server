@@ -17,7 +17,8 @@ import {
 } from 'vscode-languageclient';
 
 let client: LanguageClient;
-const flint_dev_path = "/Users/Zubair/Documents/Imperial/Thesis/Code/flint/.build/debug/dev_version";
+const flint_dev_path = "/Users/Zubair/Documents/Imperial/Thesis/Code/flint/.build/debug/flint-lsp";
+const flint_contract_analysis = "/Users/Zubair/Documents/Imperial/Thesis/Code/flint/.build/debug/flint-ca";
 
 function getWebviewContent(tsDiagramPath: vscode.Uri) {
 	return `<!DOCTYPE html>
@@ -34,9 +35,23 @@ function getWebviewContent(tsDiagramPath: vscode.Uri) {
 </html>`;
 }
 
+function getWebviewContentOnError() {
+	return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeState Diagram,</title>
+</head>
+<body>
+	<h1> Contract does not compile thus analysis is not possible. Please fix the issues with the contract and try again </h1>
+</body>
+</html>`;
+}
+
 function gen_typestate_diagram(sourceCode: string, fileName: string) : string
 {
-	return execFileSync(flint_dev_path, ["-t", sourceCode, fileName]).toString();
+	return execFileSync(flint_contract_analysis, ["-t", sourceCode, fileName]).toString();
 }
 
 function getRandom(max: number, min: number) : number {
@@ -45,7 +60,10 @@ function getRandom(max: number, min: number) : number {
 
 function create_type_state_graph(sourceCode: string, extension_path: string): string
 {
-			let graphCode = gen_typestate_diagram(sourceCode, "not_used");	
+			let graphCode = gen_typestate_diagram(sourceCode, "not_used");
+			if (graphCode.includes("ERROR")) {
+				return "ERROR";
+			}	
 			let fileName = getRandom(0, 1000).toString();
 			let dotFilePath = path.join(extension_path, 'diagrams', "d" + fileName + ".dot");
 			let pngFilePath = path.join(extension_path, 'diagrams', "p" + fileName + ".png");
@@ -70,9 +88,16 @@ export function activate(context: ExtensionContext) {
 
 			const srcCode = vscode.window.activeTextEditor.document.getText();
 			const file_name = create_type_state_graph(srcCode, context.extensionPath);
-			const diskPath = vscode.Uri.file(file_name);
-			const diagramSrc = diskPath.with({ scheme: 'vscode-resource' });
-			panel.webview.html = getWebviewContent(diagramSrc);
+			let html = "";
+			if (file_name == "ERROR") {
+				html = getWebviewContentOnError();
+			} else {
+				const diskPath = vscode.Uri.file(file_name);
+				const diagramSrc = diskPath.with({ scheme: 'vscode-resource' });
+				html = getWebviewContent(diagramSrc);
+			}
+
+			panel.webview.html = html;
 		})
 	);
 
