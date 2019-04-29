@@ -18,6 +18,11 @@
 				"command": "drawTypeState.draw",
 				"title": "Draw type state diagram for contract",
 				"category": "Contract Analysis"
+			},
+			{
+				"command": "gasEstimate.estimate",
+				"title": "Estimate the gas cost of this contract",
+				"category": "Contract Analysis"
 			}
 		],
 		"languages": [
