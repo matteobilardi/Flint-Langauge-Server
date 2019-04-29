@@ -20,6 +20,22 @@ let client: LanguageClient;
 const flint_dev_path = "/Users/Zubair/Documents/Imperial/Thesis/Code/flint/.build/debug/flint-lsp";
 const flint_contract_analysis = "/Users/Zubair/Documents/Imperial/Thesis/Code/flint/.build/debug/flint-ca";
 
+
+function getWebViewContentGas(gas_estimate_table: string) {
+	return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gas Estimates</title>
+</head>
+<body>
+    <h1> Contract Analysis: Gas Estimates</h1>
+	  ${gas_estimate_table}
+</body>
+</html>`;	
+}
+
 function getWebviewContent(tsDiagramPath: vscode.Uri, caller_analysis: string) {
 	return `<!DOCTYPE html>
 <html lang="en">
@@ -132,12 +148,65 @@ function create_type_state_graph(sourceCode: string, extension_path: string): st
 			return pngFilePath;
 }
 
+function gas_estimate(sourceCode: string, fileName: string) : string {
+	let json_estimates = execFileSync(flint_contract_analysis, ["-g", sourceCode, fileName]).toString();
+
+	json_estimates.trim();
+
+	if (json_estimates.includes("ERROR")) {
+		return "ERROR";
+	}
+
+	let tableHeaderEstimate = "\
+	<table style=\"width:100%\" border=\"1\">\
+	<tr>\
+	  <th align=\"left\"> Function </th>\
+	  <th align=\"left\"> Gas Estimate </th>\
+	</tr>\
+	";
+
+	let gas_estimates = JSON.parse(json_estimates);
+
+	let estimateTableEntries = "";
+
+	for (let funcName in gas_estimates) {
+			let gas_estimate = gas_estimates[funcName].toString();
+			let tableEntry = `<tr> <td> ${funcName} </td> <td> ${gas_estimate} </td>`;
+			estimateTableEntries += tableEntry;
+	}
+
+	estimateTableEntries += "</table> </br>";
+
+	return tableHeaderEstimate + estimateTableEntries;
+}
+
 export function activate(context: ExtensionContext) {
 	// clean up previous diagrams and then restart
 	let dir = path.join(context.extensionPath, 'diagrams');
 	cleanDiagramDir(dir);
 	createDiagramDir(dir);
 
+
+	context.subscriptions.push(
+		vscode.commands.registerCommand('gasEstimate.estimate', () => {
+				const panel = vscode.window.createWebviewPanel(
+					'gasEstimate',
+					'Gas Estimation',
+					vscode.ViewColumn.Active
+				);
+
+				const srcCode = vscode.window.activeTextEditor.document.getText();
+				const gas_estimate_html = gas_estimate(srcCode, "not_used");
+				let html = "";
+				if (gas_estimate_html === "ERROR") {
+					html = getWebviewContentOnError();
+				} else {
+					html = getWebViewContentGas(gas_estimate_html);
+				}
+
+				panel.webview.html = html;
+		})
+	);
 	context.subscriptions.push(
 		vscode.commands.registerCommand('drawTypeState.draw', () => {
 			const panel = vscode.window.createWebviewPanel(
