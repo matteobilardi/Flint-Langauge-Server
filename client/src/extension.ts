@@ -117,7 +117,7 @@ function analyse_callers_and_states_of_funcs(sourceCode: string, fileName: strin
 	let stateTable = "";
 	if (Object.keys(state_analysis).length > 0) {
 		for (let state in state_analysis) {
-			let funcs = caller_analysis[state].toString();
+			let funcs = state_analysis[state].toString();
 			let tableEntry = `<tr> <td> ${state} </td> <td> ${funcs} </td>`;
 			stateTableEntries += tableEntry;
 		}
