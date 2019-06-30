@@ -44,8 +44,7 @@ connection.onInitialize((params: InitializeParams) => {
 
 	return {
 		capabilities: {
-			// syncKind is all about how u shud ync with the language server
-			// whenever a change happens
+			// specify that we do full document sync
 			textDocumentSync: documents.syncKind,
 			// Tell the client that the server supports code completion
 			/*
@@ -83,7 +82,7 @@ async function callFlintC(textDocument: TextDocument) : Promise<void>
 	// send this over the pipeline
 	let sourceCode: String = textDocument.getText();
 	let fileName: String = textDocument.uri;
-	execFile("/Users/Zubair/Documents/Imperial/Thesis/Code/flint/.build/debug/dev_version", [sourceCode, fileName], (error, stdout, stderror) => { 
+	execFile("/Users/Zubair/Documents/Imperial/Thesis/Code/flint/.build/debug/flint-lsp", [sourceCode, fileName], (error, stdout, stderror) => { 
 		let diagnostics : Diagnostic[] = [];
 		let arrayOfLspDiags: any;
 
@@ -92,7 +91,6 @@ async function callFlintC(textDocument: TextDocument) : Promise<void>
 		} catch (error) {	  
 		}	
 
-		//let arrayOfLspDiags = JSON.parse(stdout);
 		try {
 			arrayOfLspDiags.forEach(element => {
 				diagnostics.push(convertFlintToDiag(element));	
@@ -111,77 +109,6 @@ documents.onDidChangeContent(change => {
 	callFlintC(change.document);
 });
 
-connection.onDidChangeWatchedFiles(_change => {
-	// Monitored files have change in VSCode
-	connection.console.log('We received an file change event');
-});
-
-/*
-connection.onRenameRequest(
-	(params: RenameParams) : WorkspaceEdit => {
-		return null;
-	}
-);
-
-connection.onHover(
-	(params: TextDocumentPositionParams): Hover => {
-
-		let s = documents;
-			let x:Hover = {
-			contents: {language: "html", value:"hi"},
-		};
-		return x;
-	});
-	
-
-// This handler provides the initial list of the completion items.
-connection.onCompletion(
-	(_textDocumentPosition: TextDocumentPositionParams): CompletionItem[] => {
-		// The pass parameter contains the position of the text document in
-		// which code complete got requested. For the example we ignore this
-		// info and always provide the same completion items.
-		var t = _textDocumentPosition.textDocument;
-		let targetLine = _textDocumentPosition.position["line"];
-		var txt = documents.get(t.uri).getText();
-	}
-);
-
-// This handler resolves additional information for the item selected in
-// the completion list.
-connection.onCompletionResolve(
-	(item: CompletionItem): CompletionItem => {
-		if (item.data === 1) {
-			(item.detail = 'TypeScript details'),
-				(item.documentation = 'TypeScript documentation');
-		} else if (item.data === 2) {
-			(item.detail = 'JavaScript details'),
-				(item.documentation = 'JavaScript documentation');
-		}
-		return item;
-	}
-);
-
-*/
-
-/*
-connection.onDidOpenTextDocument((params) => {
-	// A text document got opened in VSCode.
-	// params.uri uniquely identifies the document. For documents store on disk this is a file URI.
-	// params.text the initial full content of the document.
-	connection.console.log(`${params.textDocument.uri} opened.`);
-});
-connection.onDidChangeTextDocument((params) => {
-	// The content of a text document did change in VSCode.
-	// params.uri uniquely identifies the document.
-	// params.contentChanges describe the content changes to the document.
-	connection.console.log(`${params.textDocument.uri} changed: ${JSON.stringify(params.contentChanges)}`);
-});
-connection.onDidCloseTextDocument((params) => {
-	// A text document got closed in VSCode.
-	// params.uri uniquely identifies the document.
-	connection.console.log(`${params.textDocument.uri} closed.`);
-});
-*/
 
 // Make the text document manager listen on the connection
 // for open, change and close text document events

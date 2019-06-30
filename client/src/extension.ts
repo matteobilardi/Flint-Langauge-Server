@@ -36,7 +36,7 @@ function getWebViewContentGas(gas_estimate_table: string) {
 </html>`;	
 }
 
-function getWebviewContent(tsDiagramPath: vscode.Uri, caller_analysis: string) {
+function getWebviewContent(tsDiagramPath: vscode.Uri, caller_analysis: string, fvDiagram: vscode.Uri) {
 	return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -45,8 +45,12 @@ function getWebviewContent(tsDiagramPath: vscode.Uri, caller_analysis: string) {
     <title>TypeState Diagram,</title>
 </head>
 <body>
-    <h1> Contract Analysis: Type State Diagram </h1>
+	<h1> Contract Insights: </h1>
+	<h2> Type-state Visualisation </h2>
 	<img src="${tsDiagramPath}" width="300" />
+	</br>
+	<h2> Function Visualisation </h2>
+	<img src="${fvDiagram}"/>
 	${caller_analysis}
 </body>
 </html>`;
@@ -71,6 +75,11 @@ function gen_typestate_diagram(sourceCode: string, fileName: string) : string
 	return execFileSync(flint_contract_analysis, ["-t", sourceCode, fileName]).toString();
 }
 
+function gen_vis_diagram(sourceCode: string, fileName: string) : string
+{
+	return execFileSync(flint_contract_analysis, ["-f", sourceCode, fileName]).toString();
+}
+
 function analyse_callers_and_states_of_funcs(sourceCode: string, fileName: string) : string
 {
 	let res  = execFileSync(flint_contract_analysis, ["-c", sourceCode, fileName]).toString();
@@ -81,7 +90,7 @@ function analyse_callers_and_states_of_funcs(sourceCode: string, fileName: strin
 
 	let caller_state_info = JSON.parse(res);
 
-	let tableHeaderCaller = " <h1> Caller & State Analysis </h1> \
+	let tableHeaderCaller = " <h2> Caller & State Analysis </h2> \
 	  <table style=\"width:100%\" border=\"1\">\
 	  <tr>\
 		<th align=\"left\"> Caller </th>\
@@ -146,6 +155,20 @@ function create_type_state_graph(sourceCode: string, extension_path: string): st
 			fs.writeFileSync(dotFilePath, graphCode);
 			let s = execFileSync("dot", ["-Tpng", dotFilePath, "-o", pngFilePath]).toString();
 			return pngFilePath;
+}
+
+function create_vis_graph(sourceCode: string, extension_path: string): string {
+			let graphCode = gen_vis_diagram(sourceCode, "not_used");
+			if (graphCode.includes("ERROR")) {
+				return "ERROR";
+			}	
+			let fileName = getRandom(1001, 2000).toString();
+			let dotFilePath = path.join(extension_path, 'diagrams', "d" + fileName + ".dot");
+			let pngFilePath = path.join(extension_path, 'diagrams', "p" + fileName + ".png");
+			fs.writeFileSync(dotFilePath, graphCode);
+			let s = execFileSync("dot", ["-Tpng", dotFilePath, "-o", pngFilePath]).toString();
+			return pngFilePath;
+
 }
 
 function gas_estimate(sourceCode: string, fileName: string) : string {
@@ -218,13 +241,18 @@ export function activate(context: ExtensionContext) {
 			const srcCode = vscode.window.activeTextEditor.document.getText();
 			const call_analysis_html = analyse_callers_and_states_of_funcs(srcCode, "not_used");
 			const file_name = create_type_state_graph(srcCode, context.extensionPath);
+			const file_name_vis = create_vis_graph(srcCode, context.extensionPath);
+
 			let html = "";
+
 			if (file_name === "ERROR" || call_analysis_html === "ERROR") {
 				html = getWebviewContentOnError();
 			} else {
 				const diskPath = vscode.Uri.file(file_name);
 				const diagramSrc = diskPath.with({ scheme: 'vscode-resource' });
-				html = getWebviewContent(diagramSrc, call_analysis_html);
+				const diskPath_v = vscode.Uri.file(file_name_vis);
+				const fvSrc = diskPath_v.with({scheme: 'vscode-resource' });
+				html = getWebviewContent(diagramSrc, call_analysis_html, fvSrc);
 			}
 
 			panel.webview.html = html;
