@@ -13,6 +13,18 @@
 	],
 	"main": "./client/out/extension",
 	"contributes": {
+		"commands": [
+			{
+				"command": "drawTypeState.draw",
+				"title": "Analyse",
+				"category": "Contract Insights"
+			},
+			{
+				"command": "gasEstimate.estimate",
+				"title": "Estimate Gas",
+				"category": "Contract Insights"
+			}
+		],
 		"languages": [
 			{
 				"id": "flint",
