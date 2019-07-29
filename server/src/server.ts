@@ -77,12 +77,14 @@ function convertFlintToDiag(LSPDiag: Object) : Diagnostic
 	return diagnosic;
 }
 
+const flint_lsp = "/Users/Zubair/Documents/Imperial/Thesis/Code/flint/.build/debug/flint-lsp";
+
 async function callFlintC(textDocument: TextDocument) : Promise<void>
 {
 	// send this over the pipeline
 	let sourceCode: String = textDocument.getText();
 	let fileName: String = textDocument.uri;
-	execFile("/Users/Zubair/Documents/Imperial/Thesis/Code/flint/.build/debug/flint-lsp", [sourceCode, fileName], (error, stdout, stderror) => { 
+	execFile(flint_lsp, [sourceCode, fileName], (error, stdout, stderror) => { 
 		let diagnostics : Diagnostic[] = [];
 		let arrayOfLspDiags: any;
 
