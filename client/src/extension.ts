@@ -17,9 +17,10 @@ import {
 } from 'vscode-languageclient';
 
 let client: LanguageClient;
-const flint_dev_path = "/Users/Zubair/Documents/Imperial/Thesis/Code/flint/.build/debug/flint-lsp";
-const flint_contract_analysis = "/Users/Zubair/Documents/Imperial/Thesis/Code/flint/.build/debug/flint-ca";
-
+const configuration = workspace.getConfiguration();
+const flintpath: string = configuration.get('flintpath');
+const flint_contract_analysis = flintpath + '/.build/debug/flint-ca';
+const options_with_env = {env: {'FLINTPATH': flintpath}};
 
 function getWebViewContentGas(gas_estimate_table: string) {
 	return `<!DOCTYPE html>
@@ -72,17 +73,17 @@ function getWebviewContentOnError() {
 
 function gen_typestate_diagram(sourceCode: string, fileName: string) : string
 {
-	return execFileSync(flint_contract_analysis, ["-t", sourceCode, fileName]).toString();
+	return execFileSync(flint_contract_analysis, ["-t", sourceCode, fileName], options_with_env).toString();
 }
 
 function gen_vis_diagram(sourceCode: string, fileName: string) : string
 {
-	return execFileSync(flint_contract_analysis, ["-f", sourceCode, fileName]).toString();
+	return execFileSync(flint_contract_analysis, ["-f", sourceCode, fileName], options_with_env).toString();
 }
 
 function analyse_callers_and_states_of_funcs(sourceCode: string, fileName: string) : string
 {
-	let res  = execFileSync(flint_contract_analysis, ["-c", sourceCode, fileName]).toString();
+	let res  = execFileSync(flint_contract_analysis, ["-c", sourceCode, fileName], options_with_env).toString();
 
 	if (res.includes("ERROR")) {
 		return "ERROR";
@@ -172,7 +173,7 @@ function create_vis_graph(sourceCode: string, extension_path: string): string {
 }
 
 function gas_estimate(sourceCode: string, fileName: string) : string {
-	let json_estimates = execFileSync(flint_contract_analysis, ["-g", sourceCode, fileName]).toString();
+	let json_estimates = execFileSync(flint_contract_analysis, ["-g", sourceCode, fileName], options_with_env).toString();
 
 	json_estimates.trim();
 
@@ -283,6 +284,7 @@ export function activate(context: ExtensionContext) {
 		// Register the server for plain text documents
 		documentSelector: [{ scheme: 'file', language: 'flint' }],
 		synchronize: {
+			configurationSection: 'flintpath',
 			// Notify the server about file changes to '.clientrc files contained in the workspace
 			fileEvents: workspace.createFileSystemWatcher('**/.clientrc')
 		}

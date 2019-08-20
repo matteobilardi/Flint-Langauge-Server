@@ -77,14 +77,30 @@ function convertFlintToDiag(LSPDiag: Object) : Diagnostic
 	return diagnosic;
 }
 
-const flint_lsp = "/Users/Zubair/Documents/Imperial/Thesis/Code/flint/.build/debug/flint-lsp";
+interface Settings {
+	flintpath: string;
+}
+
+let flintpath: string;
+let flint_lsp: string;
+let options_with_env = {env: {'FLINTPATH': ''}}
+// The settings have changed. Is sent on server activation as well.
+connection.onDidChangeConfiguration((_) => {
+	connection.workspace
+	.getConfiguration({section: 'flintpath'})
+	.then((path) => {
+		flintpath = path
+		flint_lsp = flintpath + '/.build/debug/flint-lsp';
+		options_with_env.env["FLINTPATH"] = flintpath
+	});
+});
 
 async function callFlintC(textDocument: TextDocument) : Promise<void>
 {
 	// send this over the pipeline
 	let sourceCode: String = textDocument.getText();
 	let fileName: String = textDocument.uri;
-	execFile(flint_lsp, [sourceCode, fileName], (error, stdout, stderror) => { 
+	execFile(flint_lsp, [sourceCode, fileName], options_with_env, (error, stdout, stderror) => { 
 		let diagnostics : Diagnostic[] = [];
 		let arrayOfLspDiags: any;
 

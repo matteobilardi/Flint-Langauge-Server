@@ -5,16 +5,13 @@
 	"license": "MIT",
 	"version": "0.0.1",
 	"engines": {
-		"vscode": "^1.23.0"
-	},
-	"scripts": {
-		"update-vscode": "node ./node_modules/vscode/bin/install",
-		"postinstall": "node ./node_modules/vscode/bin/install"
+		"vscode": "^1.37.1"
 	},
 	"dependencies": {
-		"vscode-languageclient": "^4.1.4"
+		"vscode-languageclient": "^5.2.1"
 	},
+	"scripts": {},
 	"devDependencies": {
-		"vscode": "^1.1.21"
+		"@types/vscode": "^1.37.0"
 	}
 }
