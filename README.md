@@ -1,5 +1,6 @@
-## Bugs
+## Known Bugs
 - Contract analysis fails immediately on a contract with no defined states
+- If contract cost exceeds allowances no information is sent to vscode when performing gas analysis (see examples/valid/MajorityWithdraw)
 
 ## Possible improvements
 - Zubair proposed moving from geth to ganache so that contract testing will not take as long as it currently does.
@@ -7,7 +8,7 @@
 
 ## Versions of dependencies used
 - solc 0.4.24
-- web3 0.20.1
+- web3 0.20.7
 - geth 1.8.27
 
 # Installation guide
@@ -32,13 +33,13 @@ Ensure you have graphviz installed (on macOS `brew install graphviz`).
 Open a Flint contract which has some states declared in it. Right-click on any location on the page and open the `Command Palette`. From there, you can run `Contract Insights: Analyse`.
 
 # Gas analyser setup
-Then, run the following commands to get the scripts used to run a local testing blockchain on your machine.
+Run the following commands to get the scripts used to run a local testing blockchain on your machine.
 In a folder of your choice, run
 ```bash
 git clone http://www.github.com/flintlang/Flint-Block.git
 cd Flint-Block
 ```
-Download version 1.8.27 of `geth` inside the current folder as follows:
+Download version 1.8.27 of `geth`'s binary inside the current folder as follows:
 ### If using macOS
 ```bash
 wget -c https://gethstore.blob.core.windows.net/builds/geth-darwin-amd64-1.8.27-4bcc0a37.tar.gz -O - | tar -xz
@@ -47,14 +48,14 @@ rm -rf geth-darwin-amd64-1.8.27-4bcc0a37
 ```
 ### If using Linux
 ```bash
-wget -c https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.8.27-4bcc0a37.tar.gz-O - | tar -xz
+wget -c https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.8.27-4bcc0a37.tar.gz -O - | tar -xz
 mv geth-linux-amd64-1.8.27-4bcc0a37/geth .
 rm -rf geth-linux-amd64-1.8.27-4bcc0a37
 ```
 
 Then, from the same directory, create a new geth account using an empty password, i.e. press Enter on your keyboard when asked for one:
 ```bash
-geth --datadir ./blockchain account new
+./geth --datadir ./blockchain account new
 ```
 [Note: we are very aware that the following is terribile practise and we intend to replace it with a proper config file]
 
@@ -72,12 +73,12 @@ And from a new terminal window, also inside `Flint-Block`'s folder, run
 make attachH
 > miner.start()
 ```
-Wait some time for the first terminal window to finish `generating DAG`
+Wait some time (until the message `Mining too far in the future`) starts appearing in the original terminal.
 
 ## Gas analyser usage
 Open a Flint contract. Right-click on any location on the page and open the `Command Palette`. From there, you can run `Contract Insights: Estimate Gas`. Wait some time.
 
 When you are done with doing gas analysis you can stop the mining process from within the previous terminal window with the command `miner.stop()`
 
-
-
+## Test suite usage
+Replace the account address in `utils/testRunner/test_framework.js` with your local one. Create a `.tflint` test file to test some `.flint` contract you have written following the instrutions provided in this paper https://github.com/flintlang/flint/blob/master/docs/pdfs%20(student%20theses)/ecosystem/MohammadChowdhury.pdf. Run `flint-test` on that file while the blockchain is running and mining.
