@@ -37,16 +37,7 @@
 				]
 			}
 		],
-		"configuration": {
-			"title": "Flint Language Server",
-			"properties": {
-				"flintpath": {
-					"type": "string",
-					"default": "",
-					"description": "Location of the flint installation folder"
-				}
-			}
-		}
+		"configuration": { }
 	},
 	"scripts": {
 		"compile": "tsc -b",

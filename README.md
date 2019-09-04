@@ -7,7 +7,8 @@
 - The setup process and usage of the gas analyser must be simplified
 
 ## Versions of dependencies used
-- solc 0.4.24
+These should get installed automatically if you follow the guide
+- solc 0.4.25
 - web3 0.20.7
 - geth 1.8.27
 
@@ -23,7 +24,7 @@ npm run compile
 ```
 In VSCode, set the location of your flint installation directory under File > Preferences > Settings > Extension > Flint Language Server
 
-From within your flint installation folder (FLINTPATH) run 
+From within your flint installation folder (`~/.flit`) run 
 ``` bash
 npm install
 ```
@@ -32,53 +33,56 @@ npm install
 Ensure you have graphviz installed (on macOS `brew install graphviz`).
 Open a Flint contract which has some states declared in it. Right-click on any location on the page and open the `Command Palette`. From there, you can run `Contract Insights: Analyse`.
 
-# Gas analyser setup
-Run the following commands to get the scripts used to run a local testing blockchain on your machine.
-In a folder of your choice, run
+# Local blockchain setup
+## Having a local blockchain running in the background is required by the Gas analyser, the REPL and the Testing framework
+
+Run the following commands to get the scripts used to run the local testing blockchain on your machine.
+From within your home folder (~), run
 ```bash
-git clone http://www.github.com/flintlang/Flint-Block.git
-cd Flint-Block
-```
-Download version 1.8.27 of `geth`'s binary inside the current folder as follows:
-### If using macOS
-```bash
-wget -c https://gethstore.blob.core.windows.net/builds/geth-darwin-amd64-1.8.27-4bcc0a37.tar.gz -O - | tar -xz
-mv geth-darwin-amd64-1.8.27-4bcc0a37/geth .
-rm -rf geth-darwin-amd64-1.8.27-4bcc0a37
-```
-### If using Linux
-```bash
-wget -c https://gethstore.blob.core.windows.net/builds/geth-linux-amd64-1.8.27-4bcc0a37.tar.gz -O - | tar -xz
-mv geth-linux-amd64-1.8.27-4bcc0a37/geth .
-rm -rf geth-linux-amd64-1.8.27-4bcc0a37
+git clone http://www.github.com/flintlang/Flint-Block.git .flint-block
+cd .flint-block
+make geth
 ```
 
-Then, from the same directory, create a new geth account using an empty password, i.e. press Enter on your keyboard when asked for one:
+Then, from the `~/.flint-block` directory, create a new geth account using an empty password, i.e. press Enter when asked for one:
 ```bash
 ./geth --datadir ./blockchain account new
 ```
-[Note: we are very aware that the following is terribile practise and we intend to replace it with a proper config file]
+Copy and paste your ethereum account number in flint's configuration file found at `~/.flint/flint_config.json`, within the ethereumAddress field.
 
-Replace the account address (under `alloc`) in `genesis.json` with the new one that you have generated locally.
-
-In flint's installation directory, do the same for the Javscript constant `defaultAcc` in `Sources/ContractAnalysis/GasEstimator.swift` and recompile with `make`.
-
-Again from `Flint-Block`'s directory run the following
+Again from `~/.flint-block`'s directory run
 ```bash
 make init
+```
+This should automatically load some Weis on your account's balance so you can use the ecosystem.
+
+
+# Local blockchain usage
+The following assumes that your working directory is  `~/.flint-block`.
+
+To start the blockchain run
+```bash
 make runH
 ```
-And from a new terminal window, also inside `Flint-Block`'s folder, run
+and, from a new terminal window,
 ```bash
-make attachH
-> miner.start()
+make scriptH
 ```
-Wait some time (until the message `Mining too far in the future`) starts appearing in the original terminal.
+From here you should be able to check the balance of your ethereum address by typing `eth.getBalance(eth.accounts[0])`. Mining should work automatically but if you are having issues with the blockchain based tools you might try forcing the mining process by running `miner.start()`.
 
-## Gas analyser usage
+If you run out of money, you should reset your blockchain by running
+```bash
+make clean
+```
+and redo the local blockchain setup process, starting by creating a new account.
+
+# Gas analyser usage (requires running blockchain)
+
 Open a Flint contract. Right-click on any location on the page and open the `Command Palette`. From there, you can run `Contract Insights: Estimate Gas`. Wait some time.
 
-When you are done with doing gas analysis you can stop the mining process from within the previous terminal window with the command `miner.stop()`
 
-## Test suite usage
-Replace the account address in `utils/testRunner/test_framework.js` with your local one. Create a `.tflint` test file to test some `.flint` contract you have written following the instrutions provided in this paper https://github.com/flintlang/flint/blob/master/docs/pdfs%20(student%20theses)/ecosystem/MohammadChowdhury.pdf. Run `flint-test` on that file while the blockchain is running and mining.
+# Testing framework usage (requires running blockchain)
+Create a `.tflint` test file to test some `.flint` contract you have written following the instrutions provided in this paper https://github.com/flintlang/flint/blob/master/docs/pdfs%20(student%20theses)/ecosystem/MohammadChowdhury.pdf. Run `flint-test` on that file while the blockchain is running.
+
+# REPL Usage (requires running blockchain)
+Just run `flint-repl SomeContract.flint`. From the repl you should be able to deploy and interact with the contract in a similar manner as that of the `.tflint` files which you can inspect at `~/.flint/examples/testing_framework`.

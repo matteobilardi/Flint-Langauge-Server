@@ -21,6 +21,7 @@ import {
 	RenameParams,
 	WorkspaceEdit
 } from 'vscode-languageserver';
+import { homedir } from 'os'
 
 // Create a connection for the server. The connection uses Node's IPC as a transport.
 // Also include all preview / proposed LSP features.
@@ -81,26 +82,14 @@ interface Settings {
 	flintpath: string;
 }
 
-let flintpath: string;
-let flint_lsp: string;
-let options_with_env = {env: {'FLINTPATH': ''}}
-// The settings have changed. Is sent on server activation as well.
-connection.onDidChangeConfiguration((_) => {
-	connection.workspace
-	.getConfiguration({section: 'flintpath'})
-	.then((path) => {
-		flintpath = path
-		flint_lsp = flintpath + '/.build/debug/flint-lsp';
-		options_with_env.env["FLINTPATH"] = flintpath
-	});
-});
+let flint_lsp: string = homedir() + "/.flint/.build/debug/flint-lsp"
 
 async function callFlintC(textDocument: TextDocument) : Promise<void>
 {
 	// send this over the pipeline
 	let sourceCode: String = textDocument.getText();
 	let fileName: String = textDocument.uri;
-	execFile(flint_lsp, [sourceCode, fileName], options_with_env, (error, stdout, stderror) => { 
+	execFile(flint_lsp, [sourceCode, fileName], (error, stdout, stderror) => { 
 		let diagnostics : Diagnostic[] = [];
 		let arrayOfLspDiags: any;
 

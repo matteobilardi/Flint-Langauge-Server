@@ -1,4 +1,6 @@
+bin
 out
 node_modules
 .vscode-test
 diagrams/*
+file*

@@ -15,12 +15,11 @@ import {
 	ServerOptions,
 	TransportKind
 } from 'vscode-languageclient';
+import { homedir } from 'os';
 
 let client: LanguageClient;
-const configuration = workspace.getConfiguration();
-const flintpath: string = configuration.get('flintpath');
+const flintpath: string = homedir() + "/.flint"
 const flint_contract_analysis = flintpath + '/.build/debug/flint-ca';
-const options_with_env = {env: {'FLINTPATH': flintpath}};
 
 function getWebViewContentGas(gas_estimate_table: string) {
 	return `<!DOCTYPE html>
@@ -73,17 +72,17 @@ function getWebviewContentOnError() {
 
 function gen_typestate_diagram(sourceCode: string, fileName: string) : string
 {
-	return execFileSync(flint_contract_analysis, ["-t", sourceCode, fileName], options_with_env).toString();
+	return execFileSync(flint_contract_analysis, ["-t", sourceCode, fileName]).toString();
 }
 
 function gen_vis_diagram(sourceCode: string, fileName: string) : string
 {
-	return execFileSync(flint_contract_analysis, ["-f", sourceCode, fileName], options_with_env).toString();
+	return execFileSync(flint_contract_analysis, ["-f", sourceCode, fileName]).toString();
 }
 
 function analyse_callers_and_states_of_funcs(sourceCode: string, fileName: string) : string
 {
-	let res  = execFileSync(flint_contract_analysis, ["-c", sourceCode, fileName], options_with_env).toString();
+	let res  = execFileSync(flint_contract_analysis, ["-c", sourceCode, fileName]).toString();
 
 	if (res.includes("ERROR")) {
 		return "ERROR";
@@ -173,7 +172,7 @@ function create_vis_graph(sourceCode: string, extension_path: string): string {
 }
 
 function gas_estimate(sourceCode: string, fileName: string) : string {
-	let json_estimates = execFileSync(flint_contract_analysis, ["-g", sourceCode, fileName], options_with_env).toString();
+	let json_estimates = execFileSync(flint_contract_analysis, ["-g", sourceCode, fileName]).toString();
 
 	json_estimates.trim();
 
